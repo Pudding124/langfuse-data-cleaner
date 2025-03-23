@@ -3,7 +3,7 @@ name: Release Charts
 permissions:
   contents: write
   releases: write
-  
+
 # This workflow is triggered on pushes or pull request to the repository.
 on:
   push:
@@ -32,4 +32,4 @@ jobs:
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.2.1
         env:
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          CR_TOKEN: "${{ secrets.CR_TOKEN }}"
