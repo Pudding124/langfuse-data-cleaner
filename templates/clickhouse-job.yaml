@@ -11,7 +11,7 @@ spec:
         spec:
           containers:
           - name: clickhouse-client
-            image: yandex/clickhouse-client:latest
+            image: yandex/clickhouse-client:21.3.20.1
             env:
             - name: CLICKHOUSE_HOST
               value: "{{ .Values.clickhouse.host }}"
