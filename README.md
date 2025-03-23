@@ -9,6 +9,22 @@ helm repo add langfuse-data-cleaner https://Pudding124.github.io/langfuse-data-c
 helm repo update
 ```
 
+```bash
+# "0 2 * * *" means the job will run daily at 2:00 AM.
+cronjob:
+  runtime: "0 2 * * *"
+
+# ClickHouse Section:
+clickhouse:
+  enable: true                # Enable ClickHouse integration.
+  retention:
+    days: 30                  # Data retention period: 30 days.
+  host: "langfuse-clickhouse"  # Hostname of the ClickHouse server.
+  port: "9000"                # Port to connect to ClickHouse.
+  user: "default"             # Username for authentication.
+  password: "changeme"        # Password.
+```
+
 ## Contributing
  
 1. Fork it!
