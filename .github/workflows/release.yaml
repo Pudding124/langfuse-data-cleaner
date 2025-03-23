@@ -1,0 +1,31 @@
+name: Release Charts
+
+# This workflow is triggered on pushes or pull request to the repository.
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: 'v3.10.2'
+
+      - name: Run Chart Testing
+        uses: helm/chart-testing-action@v2.3.0
+        with:
+          config: ct.yaml
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.2.1
+        env:
+          CR_TOKEN: "${{ secrets.CR_TOKEN }}"

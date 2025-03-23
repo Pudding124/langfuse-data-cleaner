@@ -1,0 +1,11 @@
+cronjob:
+  runtime: "0 2 * * *"
+
+clickhouse:
+  enable: true
+  retention:
+    days: 30
+  host: "langfuse-clickhouse"
+  port: "9000"
+  user: "default"
+  password: "changeme"

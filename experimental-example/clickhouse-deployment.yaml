@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clickhouse-client-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clickhouse-client
+  template:
+    metadata:
+      labels:
+        app: clickhouse-client
+    spec:
+      containers:
+      - name: clickhouse-client
+        image: yandex/clickhouse-client:latest
+        command: ["sleep", "infinity"]

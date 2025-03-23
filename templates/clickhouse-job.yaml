@@ -1,0 +1,38 @@
+{{- if .Values.clickhouse.enable }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: clickhouse-delete-cronjob
+spec:
+  schedule: "{{ .Values.cronjob.runtime }}"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: clickhouse-client
+            image: yandex/clickhouse-client:latest
+            env:
+            - name: CLICKHOUSE_HOST
+              value: "{{ .Values.clickhouse.host }}"
+            - name: CLICKHOUSE_PORT
+              value: "{{ .Values.clickhouse.port }}"
+            command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              
+              THRESHOLD=$(date --utc --date='{{ .Values.clickhouse.retention.days }} days ago' '+%Y-%m-%d %H:%M:%S')
+              echo "Expired time: $THRESHOLD"
+
+              echo "Deleting from traces..."
+              clickhouse-client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} --user {{ .Values.clickhouse.user }} --password {{ .Values.clickhouse.password }} --query "ALTER TABLE traces DELETE WHERE timestamp < toDateTime('$THRESHOLD')"
+              
+              echo "Deleting from observations..."
+              clickhouse-client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} --user {{ .Values.clickhouse.user }} --password {{ .Values.clickhouse.password }} --query "ALTER TABLE observations DELETE WHERE start_time < toDateTime('$THRESHOLD')"
+              
+              echo "Deleting from scores..."
+              clickhouse-client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} --user {{ .Values.clickhouse.user }} --password {{ .Values.clickhouse.password }} --query "ALTER TABLE scores DELETE WHERE timestamp < toDateTime('$THRESHOLD')"
+          restartPolicy: OnFailure
+{{- end }}
