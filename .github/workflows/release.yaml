@@ -1,9 +1,5 @@
 name: Release Charts
 
-permissions:
-  contents: write
-  releases: write
-
 # This workflow is triggered on pushes or pull request to the repository.
 on:
   push:
