@@ -1,6 +1,10 @@
 cronjob:
   runtime: "0 2 * * *"
 
+nodeSelector: {}
+
+tolerations: []
+
 clickhouse:
   enable: true
   retention:

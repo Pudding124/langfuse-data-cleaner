@@ -3,6 +3,8 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: clickhouse-delete-cronjob
+  labels:
+{{ include "common.labels" . | indent 4 }}
 spec:
   schedule: "{{ .Values.cronjob.runtime }}"
   jobTemplate:
@@ -35,4 +37,12 @@ spec:
               echo "Deleting from scores..."
               clickhouse-client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} --user {{ .Values.clickhouse.user }} --password {{ .Values.clickhouse.password }} --query "ALTER TABLE scores DELETE WHERE timestamp < toDateTime('$THRESHOLD')"
           restartPolicy: OnFailure
+{{- if and (.Values.nodeSelector) }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+    {{- end }}
+    {{- if and (.Values.tolerations) }}
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
+    {{- end }}
 {{- end }}
