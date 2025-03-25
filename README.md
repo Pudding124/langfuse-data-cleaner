@@ -18,6 +18,8 @@ nodeSelector: {}
 
 tolerations: []
 
+annotations: {}
+
 # ClickHouse Section:
 clickhouse:
   enable: true                # Enable ClickHouse integration.
