@@ -14,6 +14,10 @@ helm repo update
 cronjob:
   runtime: "0 2 * * *"
 
+nodeSelector: {}
+
+tolerations: []
+
 # ClickHouse Section:
 clickhouse:
   enable: true                # Enable ClickHouse integration.
