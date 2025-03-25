@@ -5,6 +5,10 @@ metadata:
   name: clickhouse-delete-cronjob
   labels:
 {{ include "common.labels" . | indent 4 }}
+{{- if .Values.annotations }}
+  annotations:
+{{ toYaml .Values.annotations | indent 4 }}
+{{- end }}
 spec:
   schedule: "{{ .Values.cronjob.runtime }}"
   jobTemplate:

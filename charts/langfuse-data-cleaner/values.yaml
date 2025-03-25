@@ -5,6 +5,8 @@ nodeSelector: {}
 
 tolerations: []
 
+annotations: {}
+
 clickhouse:
   enable: true
   retention:
