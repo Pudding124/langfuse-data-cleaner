@@ -2,8 +2,8 @@ apiVersion: v2
 name: langfuse-data-cleaner
 description: Setup the retention of data in langfuse-self-hosting
 type: application
-version: 0.1.3
-appVersion: "1.0.3"
+version: 0.1.4
+appVersion: "1.0.4"
 maintainers:
   - name: powder_hsu
     email: surprised128@gmail.com
