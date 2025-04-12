@@ -1,8 +1,7 @@
-{{- if .Values.clickhouse.enable }}
 apiVersion: batch/v1
-kind: CronJob
+kind: Job
 metadata:
-  name: clickhouse-delete-cronjob
+  name: clickhouse-retention-job-{{ now | unixEpoch }}
   labels:
 {{ include "common.labels" . | indent 4 }}
 {{- if .Values.annotations }}
@@ -10,40 +9,24 @@ metadata:
 {{ toYaml .Values.annotations | indent 4 }}
 {{- end }}
 spec:
-  schedule: "{{ .Values.cronjob.runtime }}"
-  jobTemplate:
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
     spec:
-      template:
-        metadata:
-          annotations:
-            sidecar.istio.io/inject: "false"
-        spec:
-          containers:
-          - name: clickhouse-client
-            image: yandex/clickhouse-client:21.3.20.1
-            env:
-            - name: CLICKHOUSE_HOST
-              value: "{{ .Values.clickhouse.host }}"
-            - name: CLICKHOUSE_PORT
-              value: "{{ .Values.clickhouse.port }}"
-            command:
-            - /bin/sh
-            - -c
-            - |
-              set -e
-              
-              THRESHOLD=$(date --utc --date='{{ .Values.clickhouse.retention.days }} days ago' '+%Y-%m-%d %H:%M:%S')
-              echo "Expired time: $THRESHOLD"
-
-              echo "Deleting from traces..."
-              clickhouse-client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} --user {{ .Values.clickhouse.user }} --password {{ .Values.clickhouse.password }} --query "ALTER TABLE traces DELETE WHERE timestamp < toDateTime('$THRESHOLD')"
-              
-              echo "Deleting from observations..."
-              clickhouse-client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} --user {{ .Values.clickhouse.user }} --password {{ .Values.clickhouse.password }} --query "ALTER TABLE observations DELETE WHERE start_time < toDateTime('$THRESHOLD')"
-              
-              echo "Deleting from scores..."
-              clickhouse-client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} --user {{ .Values.clickhouse.user }} --password {{ .Values.clickhouse.password }} --query "ALTER TABLE scores DELETE WHERE timestamp < toDateTime('$THRESHOLD')"
-          restartPolicy: OnFailure
+      containers:
+      - name: clickhouse-client
+        image: yandex/clickhouse-client:21.3.20.1
+        command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+          {{- range .Values.clickhouse.ttl.tables }}
+          echo "Setting TTL for {{ .name }} ...";
+          clickhouse-client --host={{ $.Values.clickhouse.host }} --port={{ $.Values.clickhouse.port }} --user {{ $.Values.clickhouse.user }} --password {{ $.Values.clickhouse.password }} --query="ALTER TABLE {{ .name }} MODIFY TTL toDateTime({{ .ttl_column }}) + INTERVAL {{ .interval }};";
+          {{- end }}
+      restartPolicy: OnFailure
 {{- if and (.Values.nodeSelector) }}
           nodeSelector:
 {{ toYaml .Values.nodeSelector | indent 12 }}
@@ -52,4 +35,3 @@ spec:
           tolerations:
 {{ toYaml .Values.tolerations | indent 12 }}
     {{- end }}
-{{- end }}

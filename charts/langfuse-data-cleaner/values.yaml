@@ -1,17 +1,33 @@
-cronjob:
-  runtime: "0 2 * * *"
-
 nodeSelector: {}
 
 tolerations: []
 
-annotations: {}
+annotations:
+  helm.sh/hook-delete-policy: hook-succeeded, before-hook-creation
 
 clickhouse:
-  enable: true
-  retention:
-    days: 30
-  host: "langfuse-clickhouse"
+  ttl:
+    tables:
+      - name: event_log
+        ttl_column: created_at
+        interval: 2 DAY
+      - name: observations
+        ttl_column: created_at
+        interval: 2 DAY
+      - name: traces
+        ttl_column: created_at
+        interval: 2 DAY
+      - name: scores
+        ttl_column: created_at
+        interval: 2 DAY
+      - name: system.trace_log
+        ttl_column: event_time
+        interval: 2 DAY
+      - name: system.text_log
+        ttl_column: event_time
+        interval: 3 DAY
+
+  host: "mars-langfuse-clickhouse-shard0-1.mars-langfuse-clickhouse-headless.default.svc.cluster.local"
   port: "9000"
   user: "default"
-  password: "changeme"
+  password: "123456"

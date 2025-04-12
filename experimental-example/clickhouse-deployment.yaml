@@ -1,3 +1,7 @@
+# Install
+# - kubectl apply -f .\clickhouse-deployment.yaml
+# Login in to DB
+# - clickhouse-client --host langfuse-clickhouse.langfuse.svc.cluster.local --user default --password 123456
 apiVersion: apps/v1
 kind: Deployment
 metadata:
