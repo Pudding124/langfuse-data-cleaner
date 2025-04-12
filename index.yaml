@@ -2,6 +2,19 @@ apiVersion: v1
 entries:
   langfuse-data-cleaner:
   - apiVersion: v2
+    appVersion: 1.0.5
+    created: "2025-04-12T07:09:14.591385338Z"
+    description: Setup the retention of data in langfuse-self-hosting
+    digest: 8561da1edc0b0cba947f4f8acce3471191315fba38a5298fe1ee3f01ab7cf437
+    maintainers:
+    - email: surprised128@gmail.com
+      name: powder_hsu
+    name: langfuse-data-cleaner
+    type: application
+    urls:
+    - https://github.com/Pudding124/langfuse-data-cleaner/releases/download/langfuse-data-cleaner-0.1.5/langfuse-data-cleaner-0.1.5.tgz
+    version: 0.1.5
+  - apiVersion: v2
     appVersion: 1.0.4
     created: "2025-03-25T03:08:06.652556116Z"
     description: Setup the retention of data in langfuse-self-hosting
@@ -66,4 +79,4 @@ entries:
     urls:
     - https://github.com/Pudding124/langfuse-data-cleaner/releases/download/langfuse-data-cleaner-0.1.0/langfuse-data-cleaner-0.1.0.tgz
     version: 0.1.0
-generated: "2025-03-25T03:08:06.65257936Z"
+generated: "2025-04-12T07:09:14.591411837Z"
