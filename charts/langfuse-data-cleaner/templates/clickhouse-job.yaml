@@ -1,7 +1,8 @@
+{{- if .Values.clickhouse.enable }}
 apiVersion: batch/v1
-kind: Job
+kind: CronJob
 metadata:
-  name: clickhouse-retention-job-{{ now | unixEpoch }}
+  name: clickhouse-delete-cronjob
   labels:
 {{ include "common.labels" . | indent 4 }}
 {{- if .Values.annotations }}
@@ -9,29 +10,68 @@ metadata:
 {{ toYaml .Values.annotations | indent 4 }}
 {{- end }}
 spec:
-  template:
-    metadata:
-      annotations:
-        sidecar.istio.io/inject: "false"
+  schedule: "{{ .Values.cronjob.runtime }}"
+  jobTemplate:
     spec:
-      containers:
-      - name: clickhouse-client
-        image: yandex/clickhouse-client:21.3.20.1
-        command:
-        - /bin/sh
-        - -c
-        - |
-          set -e
-          {{- range .Values.clickhouse.ttl.tables }}
-          echo "Setting TTL for {{ .name }} ...";
-          clickhouse-client --host={{ $.Values.clickhouse.host }} --port={{ $.Values.clickhouse.port }} --user {{ $.Values.clickhouse.user }} --password {{ $.Values.clickhouse.password }} --query="ALTER TABLE {{ .name }} MODIFY TTL toDateTime({{ .ttl_column }}) + INTERVAL {{ .interval }};";
-          {{- end }}
-      restartPolicy: OnFailure
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "false"
+        spec:
+          containers:
+          - name: clickhouse-client
+            image: yandex/clickhouse-client:21.3.20.1
+            env:
+            - name: CLICKHOUSE_HOST
+              value: "{{ .Values.clickhouse.host }}"
+            - name: CLICKHOUSE_PORT
+              value: "{{ .Values.clickhouse.port }}"
+            - name: CLICKHOUSE_USER
+              value: "{{ .Values.clickhouse.user }}"
+            - name: CLICKHOUSE_PASSWORD
+              value: "{{ .Values.clickhouse.password }}"
+            command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              LEADER_REPLICA=$(clickhouse-client --host ${CLICKHOUSE_HOST} \
+                --user ${CLICKHOUSE_USER} --password ${CLICKHOUSE_PASSWORD} \
+                --query "SELECT replica_name FROM system.replicas WHERE is_leader = 1 LIMIT 1 FORMAT TSV")
+
+              LEADER_HOST="${LEADER_REPLICA}.{{ .Values.clickhouse.host }}"
+              echo "Leader instances: $LEADER_HOST"
+
+              {{- range .Values.clickhouse.ttl.tables }}
+              echo "Processing table: {{ .name }}"
+
+              {{- if and (eq .operation "delete") .retention }}
+              THRESHOLD=$(date --utc --date='{{ .retention }} days ago' '+%Y-%m-%d %H:%M:%S')
+              echo "  Expired time: $THRESHOLD"
+
+              clickhouse-client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} \
+                --user ${CLICKHOUSE_USER} --password ${CLICKHOUSE_PASSWORD} \
+                --query "ALTER TABLE {{ .name }} DELETE WHERE {{ .ttl_column }} < toDateTime('$THRESHOLD')"
+
+              {{- else if eq .operation "truncate" }}
+              echo "  Truncate all data"
+
+              clickhouse-client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} \
+                --user ${CLICKHOUSE_USER} --password ${CLICKHOUSE_PASSWORD} \
+                --query "TRUNCATE TABLE {{ .name }}"
+
+              {{- else }}
+              echo "  Skipping table {{ .name }}: missing retention or unknown operation"
+              {{- end }}
+
+              {{- end }}
+          restartPolicy: OnFailure
 {{- if and (.Values.nodeSelector) }}
-      nodeSelector:
-{{ toYaml .Values.nodeSelector | indent 8 }}
-{{- end }}
-{{- if and (.Values.tolerations) }}
-      tolerations:
-{{ toYaml .Values.tolerations | indent 8 }}
+          nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 12 }}
     {{- end }}
+    {{- if and (.Values.tolerations) }}
+          tolerations:
+{{ toYaml .Values.tolerations | indent 12 }}
+    {{- end }}
+{{- end }}
