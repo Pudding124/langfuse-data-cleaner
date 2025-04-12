@@ -28,10 +28,10 @@ spec:
           {{- end }}
       restartPolicy: OnFailure
 {{- if and (.Values.nodeSelector) }}
-          nodeSelector:
-{{ toYaml .Values.nodeSelector | indent 12 }}
-    {{- end }}
-    {{- if and (.Values.tolerations) }}
-          tolerations:
-{{ toYaml .Values.tolerations | indent 12 }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+{{- end }}
+{{- if and (.Values.tolerations) }}
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
     {{- end }}
