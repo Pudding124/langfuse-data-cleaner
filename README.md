@@ -23,7 +23,7 @@ clickhouse:
       - name: event_log
         ttl_column: created_at
         interval: 2 DAY
-  host: "langfuse-clickhouse-shard0-1.langfuse-clickhouse-headless.default.svc.cluster.local"  # Hostname of the ClickHouse server. (please select the leader of clickhouse shard)
+  host: "langfuse-clickhouse-headless.default.svc.cluster.local"  # Hostname of the ClickHouse server.
   port: "9000"                # Port to connect to ClickHouse.
   user: "default"             # Username for authentication.
   password: "changeme"        # Password.
