@@ -1,5 +1,5 @@
 cronjob:
-  runtime: "* 2 * * * *"
+  runtime: "* * * * *"
 
 nodeSelector: {}
 
@@ -27,13 +27,7 @@ clickhouse:
         operation: delete
         ttl_column: created_at
         retention: 2
-      - name: system.trace_log
-        operation: truncate
-        ttl_column: event_time
-      - name: system.text_log
-        operation: truncate
-        ttl_column: event_time
-  host: "langfuse-clickhouse.default.svc.cluster.local"
+  host: "mars-langfuse-clickhouse"
   port: "9000"
   user: "default"
   password: "123456"

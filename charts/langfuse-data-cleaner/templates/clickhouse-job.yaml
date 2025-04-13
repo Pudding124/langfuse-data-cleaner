@@ -35,13 +35,6 @@ spec:
             - -c
             - |
               set -e
-              LEADER_REPLICA=$(clickhouse-client --host ${CLICKHOUSE_HOST} \
-                --user ${CLICKHOUSE_USER} --password ${CLICKHOUSE_PASSWORD} \
-                --query "SELECT replica_name FROM system.replicas WHERE is_leader = 1 LIMIT 1 FORMAT TSV")
-
-              LEADER_HOST="${LEADER_REPLICA}.{{ .Values.clickhouse.host }}"
-              echo "Leader instances: $LEADER_HOST"
-
               {{- range .Values.clickhouse.ttl.tables }}
               echo "Processing table: {{ .name }}"
 
@@ -51,14 +44,7 @@ spec:
 
               clickhouse-client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} \
                 --user ${CLICKHOUSE_USER} --password ${CLICKHOUSE_PASSWORD} \
-                --query "ALTER TABLE {{ .name }} DELETE WHERE {{ .ttl_column }} < toDateTime('$THRESHOLD')"
-
-              {{- else if eq .operation "truncate" }}
-              echo "  Truncate all data"
-
-              clickhouse-client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} \
-                --user ${CLICKHOUSE_USER} --password ${CLICKHOUSE_PASSWORD} \
-                --query "TRUNCATE TABLE {{ .name }}"
+                --query "ALTER TABLE {{ .name }} ON CLUSTER default DELETE WHERE {{ .ttl_column }} < toDateTime('$THRESHOLD')"
 
               {{- else }}
               echo "  Skipping table {{ .name }}: missing retention or unknown operation"
