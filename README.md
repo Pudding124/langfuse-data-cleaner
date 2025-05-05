@@ -18,6 +18,9 @@ annotations: {}
 
 # ClickHouse Section:
 clickhouse:
+  enable: true
+  cluster_enabled: false         
+  cluster_name: default
   ttl:
     tables:
       - name: event_log

@@ -44,7 +44,7 @@ spec:
 
               clickhouse-client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} \
                 --user ${CLICKHOUSE_USER} --password ${CLICKHOUSE_PASSWORD} \
-                --query "ALTER TABLE {{ .name }} ON CLUSTER default DELETE WHERE {{ .ttl_column }} < toDateTime('$THRESHOLD')"
+                --query "ALTER TABLE {{ .name }}{{ if $.Values.clickhouse.cluster_enabled }} ON CLUSTER {{ $.Values.clickhouse.cluster_name }}{{ end }} DELETE WHERE {{ .ttl_column }} < toDateTime('$THRESHOLD')"
 
               {{- else }}
               echo "  Skipping table {{ .name }}: missing retention or unknown operation"
